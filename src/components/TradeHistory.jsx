@@ -1,0 +1,56 @@
+import React from 'react';
+
+export default function TradeHistory({ trades = [], loading = false }) {
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '--:--:--';
+    try {
+      const date = new Date(timeStr);
+      return date.toLocaleTimeString('zh-TW', { hour12: false });
+    } catch {
+      return timeStr;
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
+        <h3 className="font-display font-semibold text-sm">最新成交</h3>
+        {loading && (
+          <span className="text-[var(--text-muted)] text-xs animate-pulse">載入中...</span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 px-4 py-2 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-mono">
+        <span>價格</span>
+        <span className="text-right">數量</span>
+        <span className="text-right">時間</span>
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        {trades.length === 0 && !loading && (
+          <div className="flex items-center justify-center h-20 text-[var(--text-muted)] text-sm">
+            等待成交...
+          </div>
+        )}
+        {trades.map((trade, i) => (
+          <div
+            key={trade.id || i}
+            className="grid grid-cols-3 px-4 py-1.5 text-xs font-mono hover:bg-[var(--bg-hover)] transition-colors"
+          >
+            <span className={trade.side === 'BUY' ? 'text-[var(--green-up)]' : 'text-[var(--red-down)]'}>
+              {typeof trade.price === 'number'
+                ? trade.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                : trade.price}
+            </span>
+            <span className="text-right text-[var(--text-secondary)]">
+              {typeof trade.quantity === 'number' ? trade.quantity.toFixed(4) : trade.quantity}
+            </span>
+            <span className="text-right text-[var(--text-muted)]">
+              {formatTime(trade.time)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
