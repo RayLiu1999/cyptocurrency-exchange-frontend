@@ -97,4 +97,39 @@ export const getTrades = async (symbol = 'BTC-USD', limit = 50) => {
     }
 };
 
+// =============== Simulation API ===============
+export const startSimulation = async (config = {}) => {
+    try {
+        const defaultConfig = {
+            symbol: config.symbol || 'BTC-USD',
+            base_price: config.basePrice || 67000,
+            num_traders: config.numTraders || 20,
+            total_tx: config.totalTx || 1000,
+            worker_count: config.workerCount || 5
+        };
+        const response = await api.post('/simulation/start', defaultConfig);
+        return response.data;
+    } catch (error) {
+        throw error.response ? error.response.data : new Error('Network Error');
+    }
+};
+
+export const stopSimulation = async () => {
+    try {
+        const response = await api.post('/simulation/stop');
+        return response.data;
+    } catch (error) {
+        throw error.response ? error.response.data : new Error('Network Error');
+    }
+};
+
+export const getSimulationStatus = async () => {
+    try {
+        const response = await api.get('/simulation/status');
+        return response.data;
+    } catch (error) {
+        throw error.response ? error.response.data : new Error('Network Error');
+    }
+};
+
 export default api;

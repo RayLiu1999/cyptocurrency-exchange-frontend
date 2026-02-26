@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
+import ConfirmModal from './ConfirmModal';
 
-export default function OrderForm({ onPlaceOrder, disabled, balances = {} }) {
+export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbol = 'BTC-USD' }) {
   const [side, setSide] = useState('BUY');
   const [type, setType] = useState('LIMIT');
   const [price, setPrice] = useState('67432.50');
   const [quantity, setQuantity] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // 解析交易對
+  const [base, quote] = symbol.split('-');
 
   // 根據買賣方向決定可用餘額
   const availableBalance = side === 'BUY'
-    ? balances.USD || 0
-    : balances.BTC || 0;
+    ? balances[quote] || 0
+    : balances[base] || 0;
 
-  const availableCurrency = side === 'BUY' ? 'USD' : 'BTC';
+  const availableCurrency = side === 'BUY' ? quote : base;
 
   const formatNumber = (num, decimals = 2) => {
     if (num === undefined || num === null) return '0.00';
@@ -21,19 +26,25 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {} }) {
 
   const handleSubmit = async () => {
     if (!quantity || (type === 'LIMIT' && !price)) return;
+    // 打開確認視窗
+    setShowConfirmModal(true);
+  };
 
+  const handleConfirmOrder = async () => {
     setIsSubmitting(true);
     try {
       await onPlaceOrder({
-        symbol: 'BTC-USD',
+        symbol: symbol,
         side,
         type,
         price: type === 'LIMIT' ? parseFloat(price) : 0,
         quantity: parseFloat(quantity)
       });
       setQuantity('');
+      setShowConfirmModal(false);
     } catch (err) {
       console.error(err);
+      // 錯誤由 App.jsx 處理
     } finally {
       setIsSubmitting(false);
     }
@@ -46,15 +57,15 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {} }) {
   // 快捷百分比按鈕
   const handlePercentage = (pct) => {
     if (side === 'BUY') {
-      // 買入：用 USD 換算成 BTC
-      const usdAmount = availableBalance * (pct / 100);
+      // 買進：用 quote (USD) 換算成 base (BTC/ETH)
+      const quoteAmount = availableBalance * (pct / 100);
       const currentPrice = parseFloat(price) || 67432.50;
-      const btcAmount = usdAmount / currentPrice;
-      setQuantity(btcAmount.toFixed(6));
+      const baseAmount = quoteAmount / currentPrice;
+      setQuantity(baseAmount.toFixed(6));
     } else {
-      // 賣出：直接用 BTC 餘額
-      const btcAmount = availableBalance * (pct / 100);
-      setQuantity(btcAmount.toFixed(6));
+      // 賣出：直接用 base (BTC/ETH) 餘額
+      const baseAmount = availableBalance * (pct / 100);
+      setQuantity(baseAmount.toFixed(6));
     }
   };
 
@@ -69,7 +80,7 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {} }) {
             : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)]'
             }`}
         >
-          買入
+          買進
         </button>
         <button
           onClick={() => setSide('SELL')}
@@ -121,7 +132,7 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {} }) {
               className="input-field w-full pr-16"
               step="0.01"
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">USD</span>
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">{quote}</span>
           </div>
         </div>
       )}
@@ -138,7 +149,7 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {} }) {
             className="input-field w-full pr-16"
             step="0.0001"
           />
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">BTC</span>
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">{base}</span>
         </div>
       </div>
 
@@ -159,7 +170,7 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {} }) {
       <div className="mb-4 p-3 rounded-lg bg-[var(--bg-elevated)]">
         <div className="flex justify-between text-sm">
           <span className="text-[var(--text-muted)]">預估總額</span>
-          <span className="font-mono">{total} <span className="text-[var(--text-muted)]">USD</span></span>
+          <span className="font-mono">{total} <span className="text-[var(--text-muted)]">{quote}</span></span>
         </div>
       </div>
 
@@ -170,8 +181,17 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {} }) {
         className={`w-full py-3 font-display font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${side === 'BUY' ? 'btn-buy' : 'btn-sell'
           }`}
       >
-        {isSubmitting ? '處理中...' : (side === 'BUY' ? '買入 BTC' : '賣出 BTC')}
+        {isSubmitting ? '處理中...' : (side === 'BUY' ? `買進 ${base}` : `賣出 ${base}`)}
       </button>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmOrder}
+        orderData={{ symbol, side, type, price, quantity }}
+        loading={isSubmitting}
+      />
     </div>
   );
 }

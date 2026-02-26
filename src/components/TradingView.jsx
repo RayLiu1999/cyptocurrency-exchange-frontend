@@ -2,12 +2,12 @@ import React, { useEffect, useRef } from 'react';
 import { createChart, CandlestickSeries, ColorType } from 'lightweight-charts';
 import { useKlines } from '../hooks/useKlines';
 
-export default function TradingChart() {
+export default function TradingChart({ symbol = 'BTC-USD' }) {
   const chartContainerRef = useRef(null);
   const chartRef = useRef(null);
   const candleSeriesRef = useRef(null);
 
-  const { klines, loading } = useKlines('BTC-USD', '1m', 100);
+  const { klines, loading } = useKlines(symbol, '1m', 100);
 
   // 初始化圖表
   useEffect(() => {
