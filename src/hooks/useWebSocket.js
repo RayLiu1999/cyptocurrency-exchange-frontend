@@ -1,30 +1,39 @@
-import { useEffect, useState } from 'react';
-import { wsService } from '../services/websocket';
+import { useEffect, useState } from "react";
+import { wsService } from "../services/websocket";
 
 export function useWebSocket() {
-    const [data, setData] = useState(null);
-    const [tradeData, setTradeData] = useState([]);
-    const [latestPrice, setLatestPrice] = useState(null);
+  const [data, setData] = useState(null);
+  const [tradeData, setTradeData] = useState([]);
+  const [latestPrice, setLatestPrice] = useState(null);
+  const [isConnected, setIsConnected] = useState(wsService.isConnected);
+  const [orderUpdate, setOrderUpdate] = useState(null);
 
-    useEffect(() => {
-        wsService.connect();
+  useEffect(() => {
+    wsService.connect();
 
-        const unsubscribe = wsService.subscribe((message) => {
-            setData(message);
-            
-            // Handle different message types
-            if (message.type === 'trade') {
-                const trade = message.data;
-                setTradeData(prev => [trade, ...prev].slice(0, 50)); // Keep last 50 trades
-                setLatestPrice(trade.price);
-            }
-        });
+    const unsubscribe = wsService.subscribe((message) => {
+      if (message.type === "system_connection") {
+        setIsConnected(message.isConnected);
+        return;
+      }
 
-        return () => {
-            unsubscribe();
-            wsService.disconnect();
-        };
-    }, []);
+      setData(message);
 
-    return { data, tradeData, latestPrice };
+      // Handle different message types
+      if (message.type === "trade") {
+        const trade = message.data;
+        setTradeData((prev) => [trade, ...prev].slice(0, 50)); // Keep last 50 trades
+        setLatestPrice(trade.price);
+      } else if (message.type === "order_update") {
+        setOrderUpdate(message.data);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      wsService.disconnect();
+    };
+  }, []);
+
+  return { data, tradeData, latestPrice, isConnected, orderUpdate };
 }

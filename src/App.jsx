@@ -24,18 +24,28 @@ function App() {
   const { userId, balances, loading: userLoading, error: userError, refreshBalances } = useUser();
 
   // Hooks（等 userId 就緒後才啟用）
-  const { latestPrice } = useWebSocket();
-  const { orders, fetchOrders, placeNewOrder, cancelUserOrder, loading: ordersLoading } = useOrders(userId);
+  const { latestPrice, isConnected, orderUpdate } = useWebSocket();
+  const { orders, fetchOrders, placeNewOrder, cancelUserOrder, loading: ordersLoading, updateLocalOrder } = useOrders(userId);
   const { bids, asks } = useOrderBook(selectedSymbol, 1000);
   const { trades, loading: tradesLoading } = useTrades(selectedSymbol, 50);
 
   // Poll orders（僅當 userId 存在時）
+  // 由於我們實作了 WebSocket 推播，可將輪詢時間拉長，作為補救機制
   useEffect(() => {
     if (!userId) return;
     fetchOrders();
-    const interval = setInterval(fetchOrders, 3000);
+    const interval = setInterval(fetchOrders, 10000); // 10s
     return () => clearInterval(interval);
   }, [fetchOrders, userId]);
+
+  // WebSocket 即時更新本地訂單
+  useEffect(() => {
+    if (orderUpdate && orderUpdate.user_id === userId) {
+      updateLocalOrder(orderUpdate);
+      // 因為訂單有變更，可能成交了，順便更新一下餘額
+      refreshBalances();
+    }
+  }, [orderUpdate, userId, updateLocalOrder, refreshBalances]);
 
   // 下單處理（下單後更新餘額和訂單）
   const handlePlaceOrder = async (orderData) => {
@@ -101,6 +111,7 @@ function App() {
         selectedSymbol={selectedSymbol}
         onSymbolChange={setSelectedSymbol}
         showToast={show}
+        isConnected={isConnected}
       />
 
       <main className="flex-1 flex overflow-hidden">

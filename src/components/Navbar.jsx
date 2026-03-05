@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import SimulatorPanel from './SimulatorPanel';
+import { formatPrice, formatQty } from '../utils/format';
 
-export default function Navbar({ currentPrice, priceChange, balances = {}, selectedSymbol = 'BTC-USD', onSymbolChange, showToast }) {
+export default function Navbar({ currentPrice, priceChange, balances = {}, selectedSymbol = 'BTC-USD', onSymbolChange, showToast, isConnected = false }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const symbols = [
@@ -11,10 +12,6 @@ export default function Navbar({ currentPrice, priceChange, balances = {}, selec
 
   const currentSymbolData = symbols.find(s => s.value === selectedSymbol) || symbols[0];
 
-  const formatNumber = (num, decimals = 2) => {
-    if (num === undefined || num === null) return '0.00';
-    return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-  };
 
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)] bg-[var(--bg-primary)]">
@@ -96,7 +93,7 @@ export default function Navbar({ currentPrice, priceChange, balances = {}, selec
         <div className="text-right">
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-2xl font-semibold text-[var(--green-up)]">
-              {currentPrice || '---'}
+              {formatPrice(currentPrice) || '---'}
             </span>
             <span className={`font-mono text-sm ${priceChange?.startsWith('-') ? 'text-[var(--red-down)]' : 'text-[var(--green-up)]'}`}>
               {priceChange || ''}
@@ -110,29 +107,31 @@ export default function Navbar({ currentPrice, priceChange, balances = {}, selec
           <div className="flex items-center gap-2">
             <span className="text-[var(--text-muted)] text-xs">USD</span>
             <span className="font-mono text-sm text-[var(--text-primary)]">
-              ${formatNumber(balances.USD, 2)}
+              ${formatPrice(balances.USD)}
             </span>
           </div>
           <div className="w-px h-4 bg-[var(--border-subtle)]"></div>
           <div className="flex items-center gap-2">
             <span className="text-orange-400 text-xs">₿</span>
             <span className="font-mono text-sm text-[var(--text-primary)]">
-              {formatNumber(balances.BTC, 4)}
+              {formatQty(balances.BTC, 4)}
             </span>
           </div>
           <div className="w-px h-4 bg-[var(--border-subtle)]"></div>
           <div className="flex items-center gap-2">
             <span className="text-purple-400 text-xs">Ξ</span>
             <span className="font-mono text-sm text-[var(--text-primary)]">
-              {formatNumber(balances.ETH, 4)}
+              {formatQty(balances.ETH, 4)}
             </span>
           </div>
         </div>
 
         {/* Status Badge */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--green-muted)]">
-          <div className="w-2 h-2 rounded-full bg-[var(--green-up)] animate-pulse"></div>
-          <span className="text-[var(--green-up)] text-xs font-semibold">LIVE</span>
+        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${isConnected ? 'bg-[var(--green-muted)]' : 'bg-[var(--red-muted)]'}`}>
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-[var(--green-up)] animate-pulse' : 'bg-[var(--red-down)]'}`}></div>
+          <span className={`${isConnected ? 'text-[var(--green-up)]' : 'text-[var(--red-down)]'} text-xs font-semibold`}>
+            {isConnected ? 'LIVE' : 'DISCONNECTED'}
+          </span>
         </div>
       </div>
     </header>

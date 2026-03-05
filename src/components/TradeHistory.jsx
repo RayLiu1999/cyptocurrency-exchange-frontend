@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatPrice, formatQty } from '../utils/format';
 
 export default function TradeHistory({ trades = [], loading = false }) {
   const formatTime = (timeStr) => {
@@ -38,12 +39,10 @@ export default function TradeHistory({ trades = [], loading = false }) {
             className="grid grid-cols-3 px-4 py-1.5 text-xs font-mono hover:bg-[var(--bg-hover)] transition-colors"
           >
             <span className={trade.side === 'BUY' ? 'text-[var(--green-up)]' : 'text-[var(--red-down)]'}>
-              {typeof trade.price === 'number'
-                ? trade.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                : trade.price}
+              {formatPrice(trade.price)}
             </span>
             <span className="text-right text-[var(--text-secondary)]">
-              {typeof trade.quantity === 'number' ? trade.quantity.toFixed(4) : trade.quantity}
+              {formatQty(trade.quantity)}
             </span>
             <span className="text-right text-[var(--text-muted)]">
               {formatTime(trade.time)}

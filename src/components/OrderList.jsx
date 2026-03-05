@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatPrice, formatQty } from '../utils/format';
 
 export default function OrderList({ orders = [], onCancel, loading }) {
   const getStatusBadge = (status) => {
@@ -54,8 +55,8 @@ export default function OrderList({ orders = [], onCancel, loading }) {
                       {order.side === 'BUY' ? 'BUY' : 'SELL'}
                     </span>
                   </td>
-                  <td className="text-right">{order.price}</td>
-                  <td className="text-right">{order.filled_quantity} / {order.quantity}</td>
+                  <td className="text-right">{formatPrice(order.price)}</td>
+                  <td className="text-right">{formatQty(order.filled_quantity)} / {formatQty(order.quantity)}</td>
                   <td className="text-right">
                     <span className={`badge ${getStatusBadge(order.status)}`}>
                       {order.status}

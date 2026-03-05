@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ConfirmModal from './ConfirmModal';
+import { formatPrice, formatQty, formatTotal } from '../utils/format';
 
 export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbol = 'BTC-USD' }) {
   const [side, setSide] = useState('BUY');
@@ -19,10 +20,6 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbo
 
   const availableCurrency = side === 'BUY' ? quote : base;
 
-  const formatNumber = (num, decimals = 2) => {
-    if (num === undefined || num === null) return '0.00';
-    return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-  };
 
   const handleSubmit = async () => {
     if (!quantity || (type === 'LIMIT' && !price)) return;
@@ -51,7 +48,7 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbo
   };
 
   const total = type === 'LIMIT' && price && quantity
-    ? (parseFloat(price) * parseFloat(quantity)).toLocaleString('en-US', { minimumFractionDigits: 2 })
+    ? formatTotal(price, quantity)
     : '0.00';
 
   // 快捷百分比按鈕
@@ -114,8 +111,8 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbo
         <span className="text-[var(--text-muted)]">可用餘額</span>
         <span className="font-mono text-[var(--accent-primary)]">
           {side === 'BUY'
-            ? `$${formatNumber(availableBalance, 2)}`
-            : `${formatNumber(availableBalance, 6)}`
+            ? `$${formatPrice(availableBalance)}`
+            : `${formatQty(availableBalance, 6)}`
           } {availableCurrency}
         </span>
       </div>

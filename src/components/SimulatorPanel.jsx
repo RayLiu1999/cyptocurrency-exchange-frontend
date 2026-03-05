@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { startSimulation, stopSimulation, getSimulationStatus } from '../services/api';
+import { startSimulation, stopSimulation, getSimulationStatus, clearSimulationData } from '../services/api';
 
 export default function SimulatorPanel({ currentSymbol = 'BTC-USD', showToast }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -12,29 +12,31 @@ export default function SimulatorPanel({ currentSymbol = 'BTC-USD', showToast })
     const [config, setConfig] = useState({
         numTraders: 20,
         totalTx: 1000,
-        workerCount: 5
+        workerCount: 5,
+        intervalMs: 300 // 預設放慢一點
     });
 
-    // 輪詢狀態
+    // 輪詢狀態：開啟視窗時，或模擬器正在運行時，都要輪詢
     useEffect(() => {
         let interval;
-        if (isOpen) {
+        if (isOpen || isRunning) {
             fetchStatus();
             interval = setInterval(fetchStatus, 2000);
         }
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [isOpen]);
+    }, [isOpen, isRunning]);
 
     const fetchStatus = async () => {
         try {
             const data = await getSimulationStatus();
             setStatus(data);
-            setIsRunning(data.is_running || false);
+            setIsRunning(data.running || false);
         } catch {
             // 模擬器未啟用，不顯示錯誤
             setIsRunning(false);
+            setStatus(null);
         }
     };
 
@@ -49,11 +51,13 @@ export default function SimulatorPanel({ currentSymbol = 'BTC-USD', showToast })
                 basePrice: basePrice,
                 numTraders: config.numTraders,
                 totalTx: config.totalTx,
-                workerCount: config.workerCount
+                workerCount: config.workerCount,
+                intervalMs: config.intervalMs
             });
             
             showToast?.(`模擬交易已啟動！${config.numTraders} 個機器人正在交易 ${currentSymbol}`, 'success');
             setIsRunning(true);
+            setIsOpen(false); // 啟動後關閉視窗，讓使用者看大盤
             await fetchStatus();
         } catch (err) {
             showToast?.(err.error || '啟動模擬失敗', 'error');
@@ -71,6 +75,22 @@ export default function SimulatorPanel({ currentSymbol = 'BTC-USD', showToast })
             await fetchStatus();
         } catch (err) {
             showToast?.(err.error || '停止模擬失敗', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleClearData = async () => {
+        if (!window.confirm('確定要清除所有交易資料嗎？這將刪除所有訂單與成交紀錄。')) return;
+        setLoading(true);
+        try {
+            await clearSimulationData();
+            showToast?.('交易資料已清除', 'success');
+            await fetchStatus();
+            // 強制重新整理頁面以更新餘額和列表
+            window.location.reload();
+        } catch (err) {
+            showToast?.(err.error || '清除資料失敗', 'error');
         } finally {
             setLoading(false);
         }
@@ -142,7 +162,7 @@ export default function SimulatorPanel({ currentSymbol = 'BTC-USD', showToast })
                                     </div>
                                     <div>
                                         <span className="text-[var(--text-muted)]">已完成</span>
-                                        <div className="font-mono font-semibold">{status.completed_tx || 0}</div>
+                                        <div className="font-mono font-semibold">{status.sent_tx || 0}</div>
                                     </div>
                                     <div>
                                         <span className="text-[var(--text-muted)]">總計</span>
@@ -188,7 +208,7 @@ export default function SimulatorPanel({ currentSymbol = 'BTC-USD', showToast })
                                 </div>
 
                                 <div>
-                                    <label className="text-[var(--text-muted)] text-sm mb-2 block">併發數</label>
+                                    <label className="text-[var(--text-muted)] text-sm mb-2 block">併發數 (Worker)</label>
                                     <input
                                         type="number"
                                         value={config.workerCount}
@@ -197,6 +217,26 @@ export default function SimulatorPanel({ currentSymbol = 'BTC-USD', showToast })
                                         min="1"
                                         max="20"
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="text-[var(--text-muted)] text-sm mb-2 block flex justify-between">
+                                        <span>發單間隔 (ms)</span>
+                                        <span className="text-[var(--accent-primary)] font-mono">{config.intervalMs} ms</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        value={config.intervalMs}
+                                        onChange={(e) => setConfig({...config, intervalMs: parseInt(e.target.value) || 0})}
+                                        className="w-full accent-[var(--accent-primary)]"
+                                        min="0"
+                                        max="1000"
+                                        step="50"
+                                    />
+                                    <div className="flex justify-between text-[10px] text-[var(--text-muted)] mt-1">
+                                        <span>極速 (0ms)</span>
+                                        <span>慢速 (1s)</span>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -252,6 +292,20 @@ export default function SimulatorPanel({ currentSymbol = 'BTC-USD', showToast })
                                             <span>停止模擬</span>
                                         </>
                                     )}
+                                </button>
+                            )}
+                            
+                            {/* Clear Data Button (Always visible when not running) */}
+                            {!isRunning && (
+                                <button
+                                    onClick={handleClearData}
+                                    disabled={loading}
+                                    className="py-3 px-4 rounded-lg border border-[var(--border-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] transition-all flex items-center justify-center"
+                                    title="清除所有交易數據"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
                                 </button>
                             )}
                         </div>

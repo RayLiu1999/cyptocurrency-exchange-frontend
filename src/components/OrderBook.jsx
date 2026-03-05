@@ -1,9 +1,7 @@
 import React from 'react';
+import { formatPrice, formatQty, formatTotal } from '../utils/format';
 
-export default function OrderBook({ bids = [], asks = [], loading }) {
-  // Format number to fixed decimals
-  const formatPrice = (val) => typeof val === 'number' ? val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : val;
-  const formatQty = (val) => typeof val === 'number' ? val.toFixed(4) : val;
+export default function OrderBook({ bids = [], asks = [] }) {
 
   // Calculate max quantity for depth visualization
   const allQtys = [...bids.map(b => b.quantity), ...asks.map(a => a.quantity)];
@@ -44,7 +42,7 @@ export default function OrderBook({ bids = [], asks = [], loading }) {
             />
             <span className="text-[var(--red-down)] relative z-10">{formatPrice(ask.price)}</span>
             <span className="text-right text-[var(--text-secondary)] relative z-10">{formatQty(ask.quantity)}</span>
-            <span className="text-right text-[var(--text-muted)] relative z-10">{formatPrice(ask.price * ask.quantity)}</span>
+            <span className="text-right text-[var(--text-muted)] relative z-10">{formatTotal(ask.price, ask.quantity)}</span>
           </div>
         ))}
       </div>
@@ -72,7 +70,7 @@ export default function OrderBook({ bids = [], asks = [], loading }) {
             />
             <span className="text-[var(--green-up)] relative z-10">{formatPrice(bid.price)}</span>
             <span className="text-right text-[var(--text-secondary)] relative z-10">{formatQty(bid.quantity)}</span>
-            <span className="text-right text-[var(--text-muted)] relative z-10">{formatPrice(bid.price * bid.quantity)}</span>
+            <span className="text-right text-[var(--text-muted)] relative z-10">{formatTotal(bid.price, bid.quantity)}</span>
           </div>
         ))}
       </div>
