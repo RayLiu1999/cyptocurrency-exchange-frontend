@@ -47,7 +47,6 @@ export default function TradingChart({ symbol = 'BTC-USD' }) {
       handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
     });
 
-    // v5 API: 使用 chart.addSeries(CandlestickSeries, options)
     const candleSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#00ff88',
       downColor: '#ff3366',
@@ -60,7 +59,6 @@ export default function TradingChart({ symbol = 'BTC-USD' }) {
     chartRef.current = chart;
     candleSeriesRef.current = candleSeries;
 
-    // 響應式調整
     const handleResize = () => {
       if (chartContainerRef.current && chartRef.current) {
         chartRef.current.applyOptions({
@@ -76,16 +74,20 @@ export default function TradingChart({ symbol = 'BTC-USD' }) {
     return () => {
       window.removeEventListener('resize', handleResize);
       chart.remove();
+      // 切換 symbol 時清空引用，確保重新初始化
+      chartRef.current = null;
+      candleSeriesRef.current = null;
     };
-  }, []);
+  }, [symbol]); // 重點：加入 symbol 依賴
 
   // 更新 K 線數據
   useEffect(() => {
     if (candleSeriesRef.current && klines.length > 0) {
       candleSeriesRef.current.setData(klines);
-      // 滾動到最右邊
+      
+      // 如果是切換幣種後加載的第一批數據，強制調整視圖以適配價格區間
       if (chartRef.current) {
-        chartRef.current.timeScale().scrollToRealTime();
+        chartRef.current.timeScale().fitContent();
       }
     }
   }, [klines]);
