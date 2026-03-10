@@ -7,6 +7,7 @@ export function useWebSocket() {
   const [latestPrice, setLatestPrice] = useState(null);
   const [isConnected, setIsConnected] = useState(wsService.isConnected);
   const [orderUpdate, setOrderUpdate] = useState(null);
+  const [depthSnapshot, setDepthSnapshot] = useState(null);
 
   useEffect(() => {
     wsService.connect();
@@ -19,13 +20,15 @@ export function useWebSocket() {
 
       setData(message);
 
-      // Handle different message types
+      // 依事件類型分派處理
       if (message.type === "trade") {
         const trade = message.data;
-        setTradeData((prev) => [trade, ...prev].slice(0, 50)); // Keep last 50 trades
+        setTradeData((prev) => [trade, ...prev].slice(0, 50));
         setLatestPrice(trade.price);
       } else if (message.type === "order_update") {
         setOrderUpdate(message.data);
+      } else if (message.type === "depth_snapshot") {
+        setDepthSnapshot(message.data);
       }
     });
 
@@ -35,5 +38,5 @@ export function useWebSocket() {
     };
   }, []);
 
-  return { data, tradeData, latestPrice, isConnected, orderUpdate };
+  return { data, tradeData, latestPrice, isConnected, orderUpdate, depthSnapshot };
 }
