@@ -31,7 +31,8 @@ export default function OrderBook({ bids = [], asks = [] }) {
 
       {/* Asks (Sells) - reversed order, from low to high */}
       <div className="flex-1 overflow-auto flex flex-col-reverse">
-        {(asks.length > 0 ? asks.slice(0, 10) : [{ price: 67435.50, quantity: 0.5432 }, { price: 67435.00, quantity: 0.1234 }]).map((ask, i) => (
+        {asks.length > 0
+          ? asks.slice(0, 10).map((ask, i) => (
           <div
             key={`ask-${i}`}
             className="grid grid-cols-3 px-4 py-1 text-xs font-mono relative hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
@@ -44,14 +45,20 @@ export default function OrderBook({ bids = [], asks = [] }) {
             <span className="text-right text-[var(--text-secondary)] relative z-10">{formatQty(ask.quantity)}</span>
             <span className="text-right text-[var(--text-muted)] relative z-10">{formatTotal(ask.price, ask.quantity)}</span>
           </div>
-        ))}
+          ))
+          : (
+          <div className="flex items-center justify-center h-full text-[var(--text-muted)] text-xs">
+            等待賣單...
+          </div>
+          )
+        }
       </div>
 
       {/* Spread / Current Price */}
       <div className="px-4 py-3 border-y border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
         <div className="flex items-center justify-between">
           <span className="text-xl font-mono font-semibold text-[var(--green-up)]">
-            {bids[0]?.price ? formatPrice(bids[0].price) : '67,432.50'}
+            {bids[0]?.price ? formatPrice(bids[0].price) : <span className="text-[var(--text-muted)] text-sm">載入中...</span>}
           </span>
           <span className="text-[var(--text-muted)] text-xs">Spread: 0.01%</span>
         </div>
@@ -59,7 +66,8 @@ export default function OrderBook({ bids = [], asks = [] }) {
 
       {/* Bids (Buys) */}
       <div className="flex-1 overflow-auto">
-        {(bids.length > 0 ? bids.slice(0, 10) : [{ price: 67432.50, quantity: 0.4231 }, { price: 67432.00, quantity: 1.2034 }]).map((bid, i) => (
+        {bids.length > 0
+          ? bids.slice(0, 10).map((bid, i) => (
           <div
             key={`bid-${i}`}
             className="grid grid-cols-3 px-4 py-1 text-xs font-mono relative hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
@@ -72,7 +80,13 @@ export default function OrderBook({ bids = [], asks = [] }) {
             <span className="text-right text-[var(--text-secondary)] relative z-10">{formatQty(bid.quantity)}</span>
             <span className="text-right text-[var(--text-muted)] relative z-10">{formatTotal(bid.price, bid.quantity)}</span>
           </div>
-        ))}
+          ))
+          : (
+          <div className="flex items-center justify-center h-full text-[var(--text-muted)] text-xs">
+            等待買單...
+          </div>
+          )
+        }
       </div>
     </div>
   );

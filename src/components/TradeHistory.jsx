@@ -2,13 +2,14 @@ import React from 'react';
 import { formatPrice, formatQty } from '../utils/format';
 
 export default function TradeHistory({ trades = [], loading = false }) {
-  const formatTime = (timeStr) => {
-    if (!timeStr) return '--:--:--';
+  const formatTime = (timeVal) => {
+    if (timeVal == null) return '--:--:--';
     try {
-      const date = new Date(timeStr);
+      // 後端回傳 Unix 毫秒整數，直接用 new Date(ms)
+      const date = typeof timeVal === 'number' ? new Date(timeVal) : new Date(timeVal);
       return date.toLocaleTimeString('zh-TW', { hour12: false });
     } catch {
-      return timeStr;
+      return String(timeVal);
     }
   };
 

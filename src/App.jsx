@@ -144,6 +144,8 @@ function App() {
               onPlaceOrder={handlePlaceOrder} 
               balances={balances} 
               symbol={selectedSymbol}
+              asks={asks}
+              bids={bids}
             />
           </div>
         </div>
