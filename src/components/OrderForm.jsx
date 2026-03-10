@@ -1,14 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ConfirmModal from './ConfirmModal';
 import { formatPrice, formatQty, formatTotal } from '../utils/format';
 
-export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbol = 'BTC-USD' }) {
+export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbol = 'BTC-USD', asks = [], bids = [] }) {
   const [side, setSide] = useState('BUY');
   const [type, setType] = useState('LIMIT');
-  const [price, setPrice] = useState('67432.50');
+  const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // 記錄使用者是否自行修改過價格，不覆蓋手動輸入
+  const priceManuallyEdited = useRef(false);
+
+  // 最佳買價：bids[0]，最佳賣價：asks[0]
+  const bestBid = useMemo(() => bids.length > 0 ? parseFloat(bids[0].price) : null, [bids]);
+  const bestAsk = useMemo(() => asks.length > 0 ? parseFloat(asks[0].price) : null, [asks]);
+
+  // 自動帶入價格：僅在未手動編輯時，且有特定對手盤資料時才會覆蓋
+  useEffect(() => {
+    if (type !== 'LIMIT') return;
+    if (priceManuallyEdited.current) return; // 使用者自行輸入後就不再自動帶入
+    
+    // 如果想要買，首選最佳賣價；如果沒有最佳賣價或其為0，退而求其次用最佳買價
+    // 如果想要賣，首選最佳買價；如果沒有最佳買價或其為0，退而求其次用最佳賣價
+    let refPrice = side === 'BUY' ? bestAsk : bestBid;
+    if (!refPrice || refPrice <= 0) {
+      refPrice = side === 'BUY' ? bestBid : bestAsk;
+    }
+
+    if (refPrice != null && refPrice > 0) {
+      setPrice(refPrice.toFixed(2));
+    } else {
+      // 若連退而求其次的價格都沒有，清空讓 user 知道無法自動取價
+      setPrice('');
+    }
+  }, [side, type, bestAsk, bestBid]);
+
+  // 當前有效價格（用於計算 total 和百分比按鈕）
+  // 這裡同樣做一個 Fallback，如果自己的對手盤沒有價格，就用另一邊來估算
+  const effectivePrice = (() => {
+    const p = parseFloat(price);
+    if (!isNaN(p) && p > 0) return p;
+    const p1 = side === 'BUY' ? bestAsk : bestBid;
+    if (p1 > 0) return p1;
+    const p2 = side === 'BUY' ? bestBid : bestAsk;
+    if (p2 > 0) return p2;
+    return null;
+  })();
 
   // 解析交易對
   const [base, quote] = symbol.split('-');
@@ -47,22 +86,20 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbo
     }
   };
 
-  const total = type === 'LIMIT' && price && quantity
-    ? formatTotal(price, quantity)
-    : '0.00';
+  const total = (() => {
+    const qty = parseFloat(quantity);
+    if (!qty || qty <= 0) return '0.00';
+    return effectivePrice > 0 ? formatTotal(effectivePrice, qty) : (type === 'MARKET' ? '市價估算中...' : '0.00');
+  })();
 
   // 快捷百分比按鈕
   const handlePercentage = (pct) => {
     if (side === 'BUY') {
-      // 買進：用 quote (USD) 換算成 base (BTC/ETH)
+      if (!effectivePrice || effectivePrice <= 0) return; // 無市價資料時不動作
       const quoteAmount = availableBalance * (pct / 100);
-      const currentPrice = parseFloat(price) || 67432.50;
-      const baseAmount = quoteAmount / currentPrice;
-      setQuantity(baseAmount.toFixed(6));
+      setQuantity((quoteAmount / effectivePrice).toFixed(6));
     } else {
-      // 賣出：直接用 base (BTC/ETH) 餘額
-      const baseAmount = availableBalance * (pct / 100);
-      setQuantity(baseAmount.toFixed(6));
+      setQuantity((availableBalance * (pct / 100)).toFixed(6));
     }
   };
 
@@ -71,7 +108,7 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbo
       {/* Buy/Sell Toggle */}
       <div className="grid grid-cols-2 gap-2 mb-4">
         <button
-          onClick={() => setSide('BUY')}
+          onClick={() => { setSide('BUY'); setQuantity(''); priceManuallyEdited.current = false; }}
           className={`py-3 font-display font-semibold rounded-lg transition-all ${side === 'BUY'
             ? 'bg-[var(--green-up)] text-[var(--bg-void)]'
             : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)]'
@@ -80,7 +117,7 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbo
           買進
         </button>
         <button
-          onClick={() => setSide('SELL')}
+          onClick={() => { setSide('SELL'); setQuantity(''); priceManuallyEdited.current = false; }}
           className={`py-3 font-display font-semibold rounded-lg transition-all ${side === 'SELL'
             ? 'bg-[var(--red-down)] text-white'
             : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)]'
@@ -125,8 +162,9 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbo
             <input
               type="number"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={(e) => { priceManuallyEdited.current = true; setPrice(e.target.value); }}
               className="input-field w-full pr-16"
+              placeholder={bestAsk || bestBid ? (side === 'BUY' ? bestAsk?.toFixed(2) : bestBid?.toFixed(2)) : '市價載入中...'}
               step="0.01"
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">{quote}</span>

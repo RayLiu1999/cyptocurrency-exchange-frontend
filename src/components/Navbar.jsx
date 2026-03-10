@@ -86,11 +86,13 @@ export default function Navbar({ currentPrice, priceChange, balances = {}, selec
       </div>
 
       {/* Price Display */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6">
         {/* Simulator Panel */}
-        <SimulatorPanel currentSymbol={selectedSymbol} showToast={showToast} />
+        <div className="mr-2">
+            <SimulatorPanel currentSymbol={selectedSymbol} showToast={showToast} />
+        </div>
         
-        <div className="text-right">
+        <div className="text-right flex flex-col items-end justify-center">
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-2xl font-semibold text-[var(--green-up)]">
               {formatPrice(currentPrice) || '---'}
@@ -99,7 +101,7 @@ export default function Navbar({ currentPrice, priceChange, balances = {}, selec
               {priceChange || ''}
             </span>
           </div>
-          <span className="text-[var(--text-muted)] text-xs">標記價格</span>
+          <span className="text-[var(--text-muted)] text-xs font-medium">標記價格 (Mark Price)</span>
         </div>
 
         {/* Account Balances */}
