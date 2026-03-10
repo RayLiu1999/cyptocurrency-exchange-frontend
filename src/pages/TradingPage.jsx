@@ -33,17 +33,17 @@ export default function TradingPage() {
   // Hooks（等 userId 就緒後才啟用）
   const { latestPrice, isConnected, orderUpdate } = useWebSocket();
   const { orders, fetchOrders, placeNewOrder, cancelUserOrder, loading: ordersLoading, updateLocalOrder } = useOrders(userId);
-  const { bids, asks } = useOrderBook(selectedSymbol, 1000);
+  const { bids, asks } = useOrderBook(selectedSymbol);
   const { trades, loading: tradesLoading } = useTrades(selectedSymbol, 50);
 
-  // Poll orders（僅當 userId 存在時）
-  // 由於我們實作了 WebSocket 推播，可將輪詢時間拉長，作為補救機制
+  // 訂單輪詢策略：WS 連線正常時 60 秒補救，斷線時每 3 秒補償
   useEffect(() => {
     if (!userId) return;
     fetchOrders();
-    const interval = setInterval(fetchOrders, 10000); // 10s
+    const pollMs = isConnected ? 60000 : 3000;
+    const interval = setInterval(fetchOrders, pollMs);
     return () => clearInterval(interval);
-  }, [fetchOrders, userId]);
+  }, [fetchOrders, userId, isConnected]);
 
   // WebSocket 即時更新本地訂單
   useEffect(() => {
