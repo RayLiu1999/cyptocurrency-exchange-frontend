@@ -36,40 +36,44 @@ export default function OrderList({ orders = [], onCancel, loading }) {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Time</th>
-                <th>Side</th>
-                <th className="text-right">Price</th>
-                <th className="text-right">Filled/Qty</th>
-                <th className="text-right">Status</th>
-                <th></th>
+                <th className="text-left whitespace-nowrap">Time</th>
+                <th className="text-left whitespace-nowrap">Side</th>
+                <th className="text-center whitespace-nowrap">Price</th>
+                <th className="text-center whitespace-nowrap">Filled/Qty</th>
+                <th className="text-center whitespace-nowrap">Status</th>
+                <th className="text-center whitespace-nowrap">Action</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td className="text-[var(--text-muted)]">
-                    {order.created_at ? new Date(order.created_at).toLocaleTimeString() : '-'}
+                  <td className="text-left text-[var(--text-muted)] whitespace-nowrap">
+                    {order.created_at
+                      ? new Date(typeof order.created_at === 'number' ? order.created_at : Number(order.created_at)).toLocaleTimeString()
+                      : '-'}
                   </td>
-                  <td>
+                  <td className="text-left whitespace-nowrap">
                     <span className={order.side === 'BUY' ? 'text-[var(--green-up)]' : 'text-[var(--red-down)]'}>
                       {order.side === 'BUY' ? 'BUY' : 'SELL'}
                     </span>
                   </td>
-                  <td className="text-right">{formatPrice(order.price)}</td>
-                  <td className="text-right">{formatQty(order.filled_quantity)} / {formatQty(order.quantity)}</td>
-                  <td className="text-right">
+                  <td className="text-center whitespace-nowrap">{formatPrice(order.price)}</td>
+                  <td className="text-center whitespace-nowrap">{formatQty(order.filled_quantity)} / {formatQty(order.quantity)}</td>
+                  <td className="text-center whitespace-nowrap">
                     <span className={`badge ${getStatusBadge(order.status)}`}>
                       {order.status}
                     </span>
                   </td>
-                  <td className="text-right">
-                    {['NEW', 'PARTIALLY_FILLED'].includes(order.status) && (
+                  <td className="text-center whitespace-nowrap">
+                    {['NEW', 'PARTIALLY_FILLED'].includes(order.status) ? (
                       <button
                         onClick={() => onCancel(order.id)}
                         className="text-[var(--red-down)] hover:underline text-xs"
                       >
                         Cancel
                       </button>
+                    ) : (
+                      <span className="text-[var(--text-muted)]">-</span>
                     )}
                   </td>
                 </tr>
