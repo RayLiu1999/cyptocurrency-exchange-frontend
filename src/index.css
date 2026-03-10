@@ -33,6 +33,46 @@
   --border-accent: rgba(0, 240, 255, 0.3);
 }
 
+/* === Trading Mode Themes === */
+[data-trading-mode="INTERNAL"] {
+  --mode-accent: #7c3aed;
+  --mode-accent-rgb: 124, 58, 237;
+  --mode-glow: rgba(124, 58, 237, 0.15);
+  --mode-label-bg: rgba(124, 58, 237, 0.12);
+  --mode-label-text: #a78bfa;
+}
+
+[data-trading-mode="PAPER"] {
+  --mode-accent: #00ff88;
+  --mode-accent-rgb: 0, 255, 136;
+  --mode-glow: rgba(0, 255, 136, 0.15);
+  --mode-label-bg: rgba(0, 255, 136, 0.12);
+  --mode-label-text: #00ff88;
+}
+
+/* 模式指示器徽章 */
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--mode-label-bg);
+  color: var(--mode-label-text);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+/* 模式 Topbar 頂部發光邊線 */
+.mode-glow-border {
+  box-shadow: inset 0 2px 0 0 var(--mode-accent);
+  transition: box-shadow 0.4s ease;
+}
+
 * {
   margin: 0;
   padding: 0;
