@@ -7,7 +7,9 @@ export default function TradingChart({ symbol = 'BTC-USD' }) {
   const chartRef = useRef(null);
   const candleSeriesRef = useRef(null);
 
-  const { klines, loading } = useKlines(symbol, '1m', 100);
+  const [interval, setIntervalState] = React.useState('1m');
+
+  const { klines, loading } = useKlines(symbol, interval, 100);
 
   // 初始化圖表
   useEffect(() => {
@@ -97,15 +99,17 @@ export default function TradingChart({ symbol = 'BTC-USD' }) {
       {/* Chart Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-4">
-          <button className="px-3 py-1.5 text-sm bg-[var(--accent-glow)] text-[var(--accent-primary)] rounded border border-[var(--border-accent)]">
-            1M
-          </button>
-          {['5M', '15M', '1H', '4H', '1D'].map((tf) => (
+          {['1m', '5m', '15m', '1h', '4h', '1d'].map((tf) => (
             <button
               key={tf}
-              className="px-3 py-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              onClick={() => setIntervalState(tf)}
+              className={`px-3 py-1.5 text-sm rounded border transition-colors ${
+                interval === tf
+                  ? 'bg-[var(--accent-glow)] text-[var(--accent-primary)] border-[var(--border-accent)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] border-transparent'
+              }`}
             >
-              {tf}
+              {tf.toUpperCase()}
             </button>
           ))}
         </div>
