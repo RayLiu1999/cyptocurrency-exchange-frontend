@@ -62,7 +62,7 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `group relative w-full flex items-center justify-center py-3 rounded-lg transition-all duration-200 ${
                 isActive
-                  ? 'bg-[var(--accent-glow)] text-[var(--accent-primary)]'
+                  ? 'bg-[var(--mode-glow)] text-[var(--mode-label-text)]'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
               }`
             }
@@ -71,7 +71,7 @@ export default function Sidebar() {
             {({ isActive }) => (
               <>
                 {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-[var(--accent-primary)]" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-[var(--mode-accent)] transition-colors duration-300" />
                 )}
                 {item.icon}
                 {/* Tooltip */}
