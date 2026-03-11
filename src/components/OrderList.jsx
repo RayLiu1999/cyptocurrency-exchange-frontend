@@ -61,7 +61,12 @@ export default function OrderList({ orders = [], onCancel, loading }) {
                       {order.side === 'BUY' ? 'BUY' : 'SELL'}
                     </span>
                   </td>
-                  <td className="text-center whitespace-nowrap">{formatPrice(order.price)}</td>
+                  <td className="text-center whitespace-nowrap">
+                    {order.type === 'MARKET'
+                      ? <span className="text-[var(--text-muted)] italic text-xs">MKT</span>
+                      : formatPrice(order.price)
+                    }
+                  </td>
                   <td className="text-center whitespace-nowrap">{formatQty(order.filled_quantity)} / {formatQty(order.quantity)}</td>
                   <td className="text-center whitespace-nowrap">
                     <span className={`badge ${getStatusBadge(order.status)}`}>
