@@ -199,11 +199,10 @@ export default function SimulatorPanel({ currentSymbol = 'BTC-USD', showToast })
                                     <input
                                         type="number"
                                         value={config.totalTx}
-                                        onChange={(e) => setConfig({...config, totalTx: parseInt(e.target.value) || 1000})}
+                                        onChange={(e) => setConfig({...config, totalTx: e.target.value === '' ? '' : parseInt(e.target.value)})}
                                         className="input-field w-full"
                                         min="10"
                                         max="10000"
-                                        step="100"
                                     />
                                 </div>
 

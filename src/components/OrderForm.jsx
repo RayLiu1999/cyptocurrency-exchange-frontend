@@ -17,22 +17,23 @@ export default function OrderForm({ onPlaceOrder, disabled, balances = {}, symbo
   const bestBid = useMemo(() => bids.length > 0 ? parseFloat(bids[0].price) : null, [bids]);
   const bestAsk = useMemo(() => asks.length > 0 ? parseFloat(asks[0].price) : null, [asks]);
 
-  // 自動帶入價格：僅在未手動編輯時，且有特定對手盤資料時才會覆蓋
+  // 自動帶入價格：僅在未手動編輯時才會覆蓋
+  // 使用「對手盤最佳價」作為初始參考，讓使用者快速送出可立即成交的單
+  // 若對手盤沒有報價，就 fallback 到同方向的 best price
   useEffect(() => {
     if (type !== 'LIMIT') return;
     if (priceManuallyEdited.current) return; // 使用者自行輸入後就不再自動帶入
-    
-    // 如果想要買，首選最佳賣價；如果沒有最佳賣價或其為0，退而求其次用最佳買價
-    // 如果想要賣，首選最佳買價；如果沒有最佳買價或其為0，退而求其次用最佳賣價
-    let refPrice = side === 'BUY' ? bestAsk : bestBid;
+
+    // BUY 想立即成交 → 掛在 bestAsk 以上； SELL 想立即成交 → 掛在 bestBid 以下
+    // 但作為「預設價格」，直接帶入對手盤最佳價是最合理的
+    let refPrice = side === 'BUY' ? bestBid : bestAsk;
     if (!refPrice || refPrice <= 0) {
-      refPrice = side === 'BUY' ? bestBid : bestAsk;
+      refPrice = side === 'BUY' ? bestAsk : bestBid;
     }
 
     if (refPrice != null && refPrice > 0) {
       setPrice(refPrice.toFixed(2));
     } else {
-      // 若連退而求其次的價格都沒有，清空讓 user 知道無法自動取價
       setPrice('');
     }
   }, [side, type, bestAsk, bestBid]);

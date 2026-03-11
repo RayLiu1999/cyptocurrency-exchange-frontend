@@ -37,6 +37,7 @@ export default function OrderList({ orders = [], onCancel, loading }) {
             <thead>
               <tr>
                 <th className="text-left whitespace-nowrap">Time</th>
+                <th className="text-left whitespace-nowrap">Symbol</th>
                 <th className="text-left whitespace-nowrap">Side</th>
                 <th className="text-center whitespace-nowrap">Price</th>
                 <th className="text-center whitespace-nowrap">Filled/Qty</th>
@@ -49,8 +50,11 @@ export default function OrderList({ orders = [], onCancel, loading }) {
                 <tr key={order.id}>
                   <td className="text-left text-[var(--text-muted)] whitespace-nowrap">
                     {order.created_at
-                      ? new Date(typeof order.created_at === 'number' ? order.created_at : Number(order.created_at)).toLocaleTimeString()
+                      ? new Date(typeof order.created_at === 'number' ? order.created_at : Number(order.created_at)).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\//g, '-')
                       : '-'}
+                  </td>
+                  <td className="text-left whitespace-nowrap font-mono font-bold">
+                    {order.symbol}
                   </td>
                   <td className="text-left whitespace-nowrap">
                     <span className={order.side === 'BUY' ? 'text-[var(--green-up)]' : 'text-[var(--red-down)]'}>
