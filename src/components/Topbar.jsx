@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import SimulatorPanel from './SimulatorPanel';
 import { formatPrice, formatQty } from '../utils/format';
-import { useTradingEnvironment } from '../contexts/TradingEnvironmentContext';
+import { MODE_CONFIG, TRADING_MODES } from '../contexts/tradingEnvironmentConstants';
+import { useTradingEnvironment } from '../contexts/useTradingEnvironment';
 
 export default function Topbar({ currentPrice, priceChange, balances = {}, selectedSymbol = 'BTC-USD', onSymbolChange, showToast, isConnected = false }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { tradingMode, setTradingMode, modeConfig, isInternal, MODE_CONFIG, TRADING_MODES } = useTradingEnvironment();
+  const { tradingMode, setTradingMode, modeConfig, isInternal } = useTradingEnvironment();
 
   const symbols = [
     { value: 'BTC-USD', label: 'BTC/USD', icon: '₿', color: 'orange-500' },

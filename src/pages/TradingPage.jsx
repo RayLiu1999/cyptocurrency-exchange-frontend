@@ -12,14 +12,14 @@ import { useOrderBook } from '../hooks/useOrderBook';
 import { useUser } from '../hooks/useUser';
 import { useTrades } from '../hooks/useTrades';
 import { useToast } from '../hooks/useToast';
-import { useTradingEnvironment } from '../contexts/TradingEnvironmentContext';
+import { useTradingEnvironment } from '../contexts/useTradingEnvironment';
 
 /**
  * TradingPage - 交易看板（頁面一）
  * 支援雙模態：Internal Sim（完整功能）與 Paper Trading（佔位等待 CCXT）
  */
 export default function TradingPage() {
-  const { isInternal, isPaper, modeConfig } = useTradingEnvironment();
+  const { isInternal, isPaper } = useTradingEnvironment();
 
   // 交易對狀態
   const [selectedSymbol, setSelectedSymbol] = useState('BTC-USD');

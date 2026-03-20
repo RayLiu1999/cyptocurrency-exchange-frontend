@@ -5,7 +5,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { useTradingEnvironment } from '../contexts/TradingEnvironmentContext';
+import { useTradingEnvironment } from '../contexts/useTradingEnvironment';
 
 /**
  * 模擬資產組合數據

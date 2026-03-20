@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   AreaChart, Area,
   BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
-import { useTradingEnvironment } from '../contexts/TradingEnvironmentContext';
+import { useTradingEnvironment } from '../contexts/useTradingEnvironment';
 
 /**
  * 模擬回測資料產生器

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { TradingEnvironmentProvider, useTradingEnvironment } from '../contexts/TradingEnvironmentContext';
+import { TradingEnvironmentProvider } from '../contexts/TradingEnvironmentContext';
+import { useTradingEnvironment } from '../contexts/useTradingEnvironment';
 
 /**
  * AppLayoutInner - 內層佈局

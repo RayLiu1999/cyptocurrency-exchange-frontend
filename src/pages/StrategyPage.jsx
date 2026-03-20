@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useTradingEnvironment } from '../contexts/TradingEnvironmentContext';
+import { useTradingEnvironment } from '../contexts/useTradingEnvironment';
 
 /**
  * 內建策略模板清單
