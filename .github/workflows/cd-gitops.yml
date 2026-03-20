@@ -53,9 +53,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-        build-args: |
-          VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
-          VITE_WS_URL=${{ secrets.VITE_WS_URL }}
+          build-args: |
+            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+            VITE_WS_URL=${{ secrets.VITE_WS_URL }}
 
   update-gitops:
     name: Update Frontend GitOps Manifest
