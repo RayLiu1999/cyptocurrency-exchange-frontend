@@ -10,6 +10,12 @@ RUN npm ci
 # 複製程式碼
 COPY . .
 
+# 接收建置參數並設定為環境變數，讓 Vite 在編譯時能注入
+ARG VITE_API_BASE_URL
+ARG VITE_WS_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_WS_URL=$VITE_WS_URL
+
 # 編譯
 RUN npm run build
 
